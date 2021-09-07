@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Google Map</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <style>
+    #map {
+      height: 100%;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Jquery + Google Map -->
+  <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&libraries=&v=weekly"
+    async>
+    </script>
+
+  <script>
+
+    /* Hide other icons */
+    var noPoi = [
+      {
+        featureType: "poi",
+        stylers: [
+          { visibility: "off" }
+        ]
+      }
+    ];
+
+    /* Road Coordinates in order to draw on map */
+    const roadCoordinates = [
+      {
+        name: "road1",
+        coordinates: [
+          { lat: 21.731107, lng: 72.999509 },
+          { lat: 21.754387, lng: 73.000024 }
+        ]
+      },
+      {
+        name: "road2",
+        coordinates: [
+          { lat: 21.733647, lng: 73.009807 },
+          { lat: 21.740574, lng: 73.012962 }
+        ]
+      }
+    ];
+
+    /* Initialize Map*/
+    function initMap() {
+
+      /* Map Configuration Options*/
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: { lat: 21.730948, lng: 73.006376 },
+        mapTypeId: "roadmap",
+      });
+
+      map.setOptions({ styles: noPoi });
+
+      roadCoordinates.forEach(element => {
+
+        /* Draw lines using start and end position's coordinates */
+        const drawPath = new google.maps.Polyline({
+          path: element.coordinates,
+          geodesic: true,
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          name: element.name
+        });
+        drawPath.setMap(map);
+
+        /* Popup on hover */
+        var infowindow = new google.maps.InfoWindow({
+          content: "Hello World!"
+        });
+        google.maps.event.addListener(drawPath, 'mouseover', function (event) {
+          var contentString = "name:" + this.name + "<br>" + event.latLng.toUrlValue(6);
+          infowindow.setContent(contentString);
+          infowindow.setPosition(event.latLng);
+          infowindow.open(map);
+        });
+        google.maps.event.addListener(drawPath, 'mouseout', function (event) {
+          infowindow.close();
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>
