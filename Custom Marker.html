@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Google Map</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <style>
+    #map {
+      height: 100%;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map-canvas {
+	margin: 0;
+	padding: 0;
+	height: 400px;
+	max-width: none;
+}
+#map-canvas img {
+	max-width: none !important;
+}
+.gm-style-iw {
+	width: 350px !important;
+	top: 15px !important;
+	left: 0px !important;
+	background-color: #fff;
+	box-shadow: 0 1px 6px rgba(178, 178, 178, 0.6);
+	border: 1px solid rgba(72, 181, 233, 0.6);
+	border-radius: 2px 2px 10px 10px;
+}
+#iw-container {
+	margin-bottom: 10px;
+}
+#iw-container .iw-title {
+	font-family: 'Open Sans Condensed', sans-serif;
+	font-size: 22px;
+	font-weight: 400;
+	padding: 10px;
+	background-color: #48b5e9;
+	color: white;
+	margin: 0;
+	border-radius: 2px 2px 0 0;
+}
+#iw-container .iw-content {
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 400;
+	margin-right: 1px;
+	padding: 15px 5px 20px 15px;
+	max-height: 140px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+.iw-content img {
+	float: right;
+	margin: 0 5px 5px 10px;	
+}
+.iw-subTitle {
+	font-size: 16px;
+	font-weight: 700;
+	padding: 5px 0;
+}
+.iw-bottom-gradient {
+	position: absolute;
+	width: 326px;
+	height: 25px;
+	bottom: 10px;
+	right: 18px;
+	background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+	background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+	background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+	background: -ms-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+}
+  </style>
+</head>
+
+<body>
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Jquery + Google Map -->
+  <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&libraries=&v=weekly"
+    async>
+    </script>
+
+  <script>
+
+
+    // InfoWindow content
+    var content = '<div id="iw-container">' +
+      '<div class="iw-title">Porcelain Factory of Vista Alegre</div>' +
+      '<div class="iw-content">' +
+      '<div class="iw-subTitle">History</div>' +
+      '<img src="http://maps.marnoto.com/en/5wayscustomizeinfowindow/images/vistalegre.jpg" alt="Porcelain Factory of Vista Alegre" height="115" width="83">' +
+      '<p>Founded in 1824, the Porcelain Factory of Vista Alegre was the first industrial unit dedicated to porcelain production in Portugal. For the foundation and success of this risky industrial development was crucial the spirit of persistence of its founder, José Ferreira Pinto Basto. Leading figure in Portuguese society of the nineteenth century farm owner, daring dealer, wisely incorporated the liberal ideas of the century, having become "the first example of free enterprise" in Portugal.</p>' +
+      '<div class="iw-subTitle">Contacts</div>' +
+      '<p>VISTA ALEGRE ATLANTIS, SA<br>3830-292 Ílhavo - Portugal<br>' +
+      '<br>Phone. +351 234 320 600<br>e-mail: geral@vaa.pt<br>www: www.myvistaalegre.com</p>' +
+      '</div>' +
+      '<div class="iw-bottom-gradient"></div>' +
+      '</div>';
+
+    /* Initialize Map*/
+    function initMap() {
+
+      /* Map Configuration Options*/
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: { lat: 21.730948, lng: 73.006376 },
+        mapTypeId: "roadmap"
+      });
+
+      const marker = new google.maps.Marker({
+        position: { lat: 21.710903, lng: 72.981204 },
+        map,
+        title: "Sample Title",
+        icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/library_maps.png"
+      });
+
+      var infowindow = new google.maps.InfoWindow({
+        content: content,
+        maxWidth: 350
+      });
+
+
+      google.maps.event.addListener(marker, 'click', function () {
+        infowindow.open(map, marker);
+      });
+
+      google.maps.event.addListener(map, 'click', function () {
+        infowindow.close();
+      });
+
+    }
+  </script>
+</body>
+
+</html>
