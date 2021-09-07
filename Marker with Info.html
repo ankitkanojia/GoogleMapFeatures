@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Google Map</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <style>
+    #map {
+      height: 100%;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Jquery + Google Map -->
+  <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&libraries=&v=weekly"
+    async>
+    </script>
+
+  <script>
+
+    /* Initialize Map*/
+    function initMap() {
+
+      /* Map Configuration Options*/
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: { lat: 21.730948, lng: 73.006376 },
+        mapTypeId: "roadmap"
+      });
+	  
+      new google.maps.Marker({
+		position: { lat: 21.710903, lng: 72.981204 },
+		map,
+		title: "Sample Title"
+	  });
+
+    }
+  </script>
+</body>
+
+</html>
