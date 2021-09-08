@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<head>
+  <title>Google Map</title>
+  <style>
+    #map {
+      width: 100%; height: 600px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-3">
+            <h2>Check Location Avaibility</h2>
+            <form>
+              <div class="form-group">
+                <label for="text1">Latitude</label>
+                <input placeholder="Latitude" id="latitude" type="text" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="text1">Longitude</label>
+                <input placeholder="Longitude" id="longitude" type="text" class="form-control">
+              </div>
+              <div class="form-group">
+                <button onclick="calculateDistance()" name="button" type="button" class="btn btn-primary">Submit</button>
+              </div>
+            </form>
+          </div>
+          <div class="col-md-9">
+            <div id="map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?v=3&amp;sensor=false">
+    </script>
+
+<script>
+ var map;
+var directionsService;
+var bounds = new google.maps.LatLngBounds();
+var polyline1 = new google.maps.Polyline({
+    path: [],
+    strokeColor: "#DD71D8",
+    strokeWeight: 1
+});
+var polyline2 = new google.maps.Polyline({
+    path: [],
+    strokeColor: "#0000ff",
+    strokeWeight: 1
+});
+var polyline3 = new google.maps.Polyline({
+    path: [],
+    strokeColor: "#ff0000",
+    strokeWeight: 8
+});
+
+function loadRoute1() {
+    var request = {
+        origin: new google.maps.LatLng(30.244517, -97.892271),
+        destination: new google.maps.LatLng(30.244517, -97.892271),
+        waypoints: [{
+            location: new google.maps.LatLng(30.241532, -97.894202)
+        }, {
+            location: new google.maps.LatLng(30.239549, -97.894567)
+        }],
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    directionsService.route(request, function (result, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            result.draggable = true;
+            var renderer = new google.maps.DirectionsRenderer({
+                draggable: true,
+                polylineOptions: {
+                    strokeColor: "#DD71D8",
+                    strokeWeight: 1
+                },
+                map: map
+            });
+            var path = result.routes[0].overview_path;
+            var legs = result.routes[0].legs;
+            for (i = 0; i < legs.length; i++) {
+                var steps = legs[i].steps;
+                for (j = 0; j < steps.length; j++) {
+                    var nextSegment = steps[j].path;
+                    for (k = 0; k < nextSegment.length; k++) {
+                        polyline1.getPath().push(nextSegment[k]);
+                        bounds.extend(nextSegment[k]);
+                    }
+                }
+            }
+            // polyline1.setMap(map);
+            if (polyline2.getPath().getLength() > 1) {
+                getPolylineIntersection();
+            }
+            renderer.setDirections(result);
+        }
+    });
+}
+
+function loadRoute2() {
+    var request = {
+        origin: new google.maps.LatLng(30.244220, -97.890426),
+        destination: new google.maps.LatLng(30.244220, -97.890426),
+        waypoints: [{
+            location: new google.maps.LatLng(30.243312, -97.890877)
+        }, {
+            location: new google.maps.LatLng(30.242431, -97.891601)
+        }, {
+            location: new google.maps.LatLng(30.243145, -97.893156)
+        }, {
+            location: new google.maps.LatLng(30.242357, -97.893811)
+        }, {
+            location: new google.maps.LatLng(30.241671, -97.891783)
+        }],
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+
+    directionsService.route(request, function (result, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            result.draggable = true;
+            var renderer = new google.maps.DirectionsRenderer({
+                draggable: true,
+                polylineOptions: {
+                    strokeColor: "#0000ff",
+                    strokeWeight: 1                    
+                },
+                map: map
+            });
+            var path = result.routes[0].overview_path;
+            var legs = result.routes[0].legs;
+            for (i = 0; i < legs.length; i++) {
+                var steps = legs[i].steps;
+                for (j = 0; j < steps.length; j++) {
+                    var nextSegment = steps[j].path;
+                    for (k = 0; k < nextSegment.length; k++) {
+                        polyline2.getPath().push(nextSegment[k]);
+                        bounds.extend(nextSegment[k]);
+                    }
+                }
+            }
+            // polyline2.setMap(map);
+            if (polyline1.getPath().getLength() > 1) {
+                getPolylineIntersection();
+            }
+            renderer.setDirections(result);
+        }
+    });
+}
+
+function getPolylineIntersection() {
+    for (var i = 0; i < polyline1.getPath().getLength(); i++) {
+        for (var j = 0; j < polyline2.getPath().getLength(); j++) {
+            if (polyline1.getPath().getAt(i).equals(polyline2.getPath().getAt(j))) {
+                polyline3.getPath().push(polyline1.getPath().getAt(i));
+            }
+        }
+    }
+    polyline3.setMap(map);
+}
+
+
+function initialize() {
+
+    var mapOptions = {
+        zoom: 16,
+        draggable: true,
+        center: {
+            lat: 30.241532,
+            lng: -97.894202
+        }
+    };
+
+    map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    directionsService = new google.maps.DirectionsService();
+
+    loadRoute1();
+    loadRoute2();
+
+}
+
+initialize();
+</script></body>
+
+</html>
