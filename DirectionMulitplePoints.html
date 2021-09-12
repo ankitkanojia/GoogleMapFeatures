@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Google Map</title>
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #floating-panel {
+            position: absolute;
+            top: 10px;
+            left: 25%;
+            z-index: 5;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #999;
+            text-align: center;
+            font-family: "Roboto", "sans-serif";
+            line-height: 30px;
+            padding-left: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="initializeonymous">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h2>Check Location Avaibility</h2>
+                        <form>
+                            <div class="form-group">
+                                <label for="text1">Start Point Lat/Long</label>
+                                <input value="21.713882, 73.018967" id="start" type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="text1">End Point Lat/Long</label>
+                                <input value="21.712664, 73.020104" id="end" type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <button onclick="drawPath()" name="button" type="button" class="btn btn-primary">Draw a
+                                    Path</button>
+                            </div>
+                        </form>
+                        <button onclick="addAnotherPath()" name="button" type="button" class="btn btn-primary">Draw another
+                            Path</button>
+                    </div>
+                    <div class="col-md-9">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&libraries=&v=weekly"
+        async>
+        </script>
+
+    <script>
+        var directionsService;
+        var map;
+        function initMap() {
+            directionsService = new google.maps.DirectionsService();
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 7,
+                center: { lat: 21.724569, lng: 73.002084 },
+            });
+        }
+
+        function drawPath() {
+            directionsService
+                .route({
+                    origin: {
+                        query: document.getElementById("start").value
+                    },
+                    destination: {
+                        query: document.getElementById("end").value
+                    },
+                    travelMode: google.maps.TravelMode.TRANSIT  //DRIVING //BICYCLING //WALKING 
+                })
+                .then((response) => {
+                    var directionsRenderer = new google.maps.DirectionsRenderer();
+                    directionsRenderer.setMap(map);
+                    directionsRenderer.setDirections(response);
+                })
+                .catch((e) => window.alert("Directions request failed due to " + status));
+        }
+
+        function addAnotherPath() {
+            document.getElementById("start").value = "21.714980, 73.018853";
+            document.getElementById("end").value = "21.713803, 73.019770";
+            drawPath();
+        }
+    </script>
+</body>
+
+</html>
