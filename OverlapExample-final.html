@@ -134,11 +134,10 @@
 					});
 					directionsRenderer.setDirections(response);
 					var paths = response.routes[0].overview_path;
-					polyline = new google.maps.Polyline({
-						path: paths,
-						map: map
+					var newPolyline = new google.maps.Polyline({
+						path: paths
 					});
-					polyLines.push(polyline);
+					polyLines.push(newPolyline);
 					directionsRenderer.setMap(map);
 					if(e === 0) {
 						//addresses.forEach(myFunction);
@@ -152,53 +151,73 @@
 
 	function checkInterSect() {
 		var isIntersect = false;
+		var point1 = document.getElementById("point1").value.split(",");
+		var point2 = document.getElementById("point2").value.split(",");
 		$(exitingAddresses).each(function(e, element) {
-			var point1 = document.getElementById("point1").value.split(",");
-			var point2 = document.getElementById("point2").value.split(",");
-			var line1 = turf.lineString([[parseFloat(element[0].start.trim()), parseFloat(element[0].end.trim())], [parseFloat(element[1].start.trim()), parseFloat(element[1].end.trim())]]);
-			var line2 = turf.lineString([[parseFloat(point1[0].trim()), parseFloat(point1[1].trim())], [parseFloat(point2[0].trim()), parseFloat(point2[1].trim())]]);
+			var line1 = turf.lineString([
+				[parseFloat(element[0].start.trim()), parseFloat(element[0].end.trim())],
+				[parseFloat(element[1].start.trim()), parseFloat(element[1].end.trim())]
+			]);
+			var line2 = turf.lineString([
+				[parseFloat(point1[0].trim()), parseFloat(point1[1].trim())],
+				[parseFloat(point2[0].trim()), parseFloat(point2[1].trim())]
+			]);
 			var intersects = turf.lineIntersect(line1, line2);
-			if(intersects.features.length > 0)
-			{
+			if(intersects.features.length > 0) {
 				isIntersect = true;
 			}
 		});
-
-		if(!isIntersect){
+		$(polyLines).each(function(e, element) {
+			if(google.maps.geometry.poly.isLocationOnEdge(new google.maps.LatLng(point1[0].trim(), point1[1].trim()), element, 1e-4)) {
+				isIntersect = true;
+			}
+			if(google.maps.geometry.poly.isLocationOnEdge(new google.maps.LatLng(point2[0].trim(), point2[1].trim()), element, 1e-4)) {
+				isIntersect = true;
+			}
+		});
+		if(!isIntersect) {
 			AddNewLocation();
-		}else{
+		} else {
 			alert("Line intersect!!");
 		}
 	}
 
-	function AddNewLocation(){
+	function AddNewLocation() {
 		var point1 = document.getElementById("point1").value.split(",");
 		var point2 = document.getElementById("point2").value.split(",");
 		var start = new google.maps.LatLng(parseFloat(point1[0].trim()), parseFloat(point1[1].trim()));
 		var end = new google.maps.LatLng(parseFloat(point2[0].trim()), parseFloat(point2[1].trim()));
-			directionsService.route({
-				origin: start,
-				destination: end,
-				travelMode: "DRIVING"
-			}, function(response, status) {
-				if(status === "OK") {
-					var directionsRenderer = new google.maps.DirectionsRenderer({
-						polylineOptions: {
-							strokeColor: "purple"
-						}
-					});
-					directionsRenderer.setDirections(response);
-					var paths = response.routes[0].overview_path;
-					var newPolyline = new google.maps.Polyline({
-						path: paths,
-						map: map
-					});
-					polyLines.push(newPolyline);
-					directionsRenderer.setMap(map);
-				} else {
-					window.alert("Directions request failed due to " + status);
-				}
-			});
+		directionsService.route({
+			origin: start,
+			destination: end,
+			travelMode: "DRIVING"
+		}, function(response, status) {
+			if(status === "OK") {
+				var directionsRenderer = new google.maps.DirectionsRenderer({
+					polylineOptions: {
+						strokeColor: "purple"
+					}
+				});
+				directionsRenderer.setDirections(response);
+				var paths = response.routes[0].overview_path;
+				var newPolyline = new google.maps.Polyline({
+					path: paths
+				});
+				polyLines.push(newPolyline);
+				directionsRenderer.setMap(map);
+				exitingAddresses.push(
+					[{
+						start: point1[0].trim(),
+						end: point1[1].trim()
+					}, {
+						start: point2[0].trim(),
+						end: point2[1].trim()
+					}]);
+				console.log(exitingAddresses)
+			} else {
+				window.alert("Directions request failed due to " + status);
+			}
+		});
 	}
 
 	function myFunction(item) {
