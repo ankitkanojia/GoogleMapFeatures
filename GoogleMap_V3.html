@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Map</title>
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+
+        table {
+            font-family: parseFloat(arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px !important;
+        }
+
+        .delete:hover {
+            cursor: pointer;
+        }
+
+        td, th {
+            padding: 5px !important; border: 1px solid black !important;
+        }
+    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="initializeonymous">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div id="status"></div>
+                        <h2>Location Avaibility</h2>
+                        <form>
+                            <div class="form-group">
+                                <label for="text1">Start Point Lat/Long</label>
+                                <input value="21.71410701728086, 73.0173263550424" id="point1" type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="text1">End Point Lat/Long</label>
+                                <input value="21.714184265647244, 73.01804250483785" id="point2" type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <button onclick="checkInterSect()" name="button" type="button" class="btn btn-primary">Add Location</button>
+                            </div>
+                        </form>
+                        <br />
+                        <h2 class="location hide">Added Locations</h2>
+                        <table id="maptable"></table>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--<script src="https://unpkg.com/@turf/turf/turf.min.js"></script>-->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&libraries=geometry&v=weekly" async></script>
+    <script src="line.js"></script>
+    <script>
+        var copyclick = 0;
+        var polyline;
+        var directionsService;
+        var map;
+        var addresses = [
+            [21.714406738738802, 73.01920713100557],
+            [21.71469081258052, 73.01892281685457],
+            [21.713649205752077, 73.01805378114769],
+            [21.71366914088178, 73.0190408340493],
+            [21.713733930039645, 73.01826835780808],
+            [21.713549530067592, 73.01907838491758],
+            [21.713459821887618, 73.01874042658713],
+            [21.71204940259448, 73.02003861572948]
+        ];
+        const labels = "CDEFGHIJKLMNOPQRSTUVWXYZ";
+        let labelIndex = 0;
+        var polyLines = [];
+        var colors = ["red", "blue", "green"]
+        var exitingAddresses = [];
+        var directionsRendererCollection = [];
+
+        function initMap() {
+            directionsService = new google.maps.DirectionsService();
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 7,
+                center: {
+                    lat: 21.713135875216505,
+                    lng: 73.01859558730264
+                }
+            });
+
+            map.addListener('rightclick', function (e) {
+                copyclick++;
+                var lat = e.latLng.lat();
+                var lng = e.latLng.lng();
+                //navigator.clipboard.writeText(lat + ", " + lng);
+                if (copyclick % 2 == 0) {
+                    $("#point2").val(lat + ", " + lng);
+                    $("#point2").attr("style", "border: 2px solid red");
+                    setTimeout(function () {
+                        $("#point2").removeAttr("style")
+                    }, 2000);
+                } else {
+                    $("#point1").val(lat + ", " + lng);
+                    $("#point1").attr("style", "border: 2px solid red");
+                    setTimeout(function () {
+                        $("#point1").removeAttr("style")
+                    }, 2000);
+                }
+            });
+
+            //$(exitingAddresses).each(function (e, element) {
+            //    var start = new google.maps.LatLng(element.locations[0].start, element.locations[0].end);
+            //    var end = new google.maps.LatLng(element.locations[1].start, element.locations[1].end);
+            //    directionsService.route({
+            //        origin: start,
+            //        destination: end,
+            //        travelMode: "DRIVING"
+            //    }, function (response, status) {
+            //        if (status === "OK") {
+            //            var directionsRenderer = new google.maps.DirectionsRenderer({
+            //                polylineOptions: {
+            //                    strokeColor: colors[e]
+            //                }
+            //            });
+            //            directionsRenderer.setDirections(response);
+            //            var paths = response.routes[0].overview_path;
+            //            var newPolyline = new google.maps.Polyline({
+            //                path: paths
+            //            });
+            //            polyLines.push({ char: currentChar, polyline: newPolyline });
+            //            directionsRenderer.setMap(map);
+            //            if (e === 0) {
+            //                //addresses.forEach(myFunction);
+            //            }
+            //        } else {
+            //            window.alert("Directions request failed due to " + status);
+            //        }
+            //    });
+            //});
+        }
+
+        function checkInterSect() {
+            var isIntersect = false;
+            var point1 = document.getElementById("point1").value.split(",");
+            var point2 = document.getElementById("point2").value.split(",");
+            //$(exitingAddresses).each(function (e, element) {
+            //    var line1 = turf.lineString([[parseFloat(element.locations[0].start.trim()), parseFloat(element.locations[0].end.trim())], [parseFloat(element.locations[1].start.trim()), parseFloat(element.locations[1].end.trim())]]);
+            //    var line2 = turf.lineString([[parseFloat(point1[0].trim()), parseFloat(point1[1].trim())], [parseFloat(point2[0].trim()), parseFloat(point2[1].trim())]]);
+            //    var intersects = turf.lineOverlap(line1, line2);
+            //    console.log(intersects)
+            //    if (intersects.features.length > 0) {
+            //        isIntersect = true;
+            //        console.log("A");
+            //    }
+            //});
+
+
+            $(exitingAddresses).each(function (e, element) {
+                //if (!isIntersect)
+                //    isIntersect = isLocationOnEdge(new google.maps.LatLng(point1[0].trim(), point1[1].trim()), element.legs, 0.001);
+
+                if (!isIntersect) {
+                    isIntersect = doLineSegmentsIntersect(
+                        { x: parseFloat(point1[0].trim()), y: parseFloat(point1[1].trim()) },
+                        { x: parseFloat(point2[0].trim()), y: parseFloat(point2[1].trim()) },
+                        { x: parseFloat(element.locations[0].start.trim()), y: parseFloat(element.locations[0].end.trim()) },
+                        { x: parseFloat(element.locations[1].start.trim()), y: parseFloat(element.locations[1].end.trim()) }
+                    );
+                }
+            });
+
+            if (!isIntersect) {
+                AddNewLocation();
+            } else {
+                alert("Line intersect!!");
+            }
+        }
+
+        var isLocationOnEdge = function (location, legs, toleranceInMeters) {
+            for (var leg of legs) {
+                if (google.maps.geometry.spherical.computeDistanceBetween(location, leg) <= toleranceInMeters) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        function makeid(length) {
+            var result = '';
+            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            var charactersLength = characters.length;
+            for (var i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() *
+                    charactersLength));
+            }
+            return result.toUpperCase();
+        }
+
+        var existingLetters = [];
+        function getDistinctChar() {
+            var pointChar;
+            do {
+                pointChar = makeid(1);
+            }
+            while (existingLetters.indexOf(pointChar) > -1);
+            existingLetters.push(pointChar);
+            return pointChar;
+        }
+
+        function AddNewLocation() {
+            var point1 = document.getElementById("point1").value.split(",");
+            var point2 = document.getElementById("point2").value.split(",");
+            var start = new google.maps.LatLng(parseFloat(point1[0].trim()), parseFloat(point1[1].trim()));
+            var end = new google.maps.LatLng(parseFloat(point2[0].trim()), parseFloat(point2[1].trim()));
+            directionsService.route({
+                origin: start,
+                destination: end,
+                travelMode: "WALKING"
+            }, function (response, status) {
+                if (status === "OK") {
+                    var currentChar = getDistinctChar();
+                    var icon = {
+                        url: "http://maps.google.com/mapfiles/kml/paddle/" + currentChar + ".png", // url
+                        scaledSize: new google.maps.Size(35, 35), // scaled size
+                    };
+                    var directionsRenderer = new google.maps.DirectionsRenderer({
+                        polylineOptions: {
+                            strokeColor: "purple"
+                        },
+                        markerOptions: {
+                            icon: icon
+                        },
+                        preserveViewport: true
+                    });
+
+                    directionsRenderer.setDirections(response);
+
+                    var paths = response.routes[0].overview_path;
+                    var legs = response.routes[0].legs;
+                    var newPolyline = new google.maps.Polyline({
+                        path: paths
+                        //map: map
+                    });
+                    polyLines.push({ char: currentChar, polyline: newPolyline, legs: legs });
+                    directionsRenderer.setMap(map);
+
+                    exitingAddresses.push({
+                        char: currentChar,
+                        locations:
+                            [{
+                                start: point1[0].trim(),
+                                end: point1[1].trim()
+                            }, {
+                                start: point2[0].trim(),
+                                end: point2[1].trim()
+                            }]
+                    });
+
+                    AddRouteTable(currentChar, document.getElementById("point1").value, document.getElementById("point2").value);
+                    directionsRendererCollection.push({ char: currentChar, render: directionsRenderer });
+
+                    zoomLocation(document.getElementById("point1").value);
+                } else {
+                    window.alert("Directions request failed due to " + status);
+                }
+            });
+        }
+
+        function AddRouteTable(char, start, end) {
+            $("#maptable").append(`<tr><td><img class="delete" onclick="zoomLocation('${start}')" width="35" src="http://maps.google.com/mapfiles/kml/paddle/${char}.png" /><td> Start Point : ${start} <br />End Point : ${end} </td>` +
+                `<td><img onclick="DeleteLocation(this,'${char}')" class="delete" width="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANIAAADwCAMAAABCI8pNAAAAeFBMVEX///8AAACmpqaioqIKCgr8/Pyrq6usrKzb29uxsbHX19fj4+Pg4ODa2tpVVVVRUVEWFhaJiYnr6+tKSkp5eXk6Ojrp6ekcHBzR0dGVlZVCQkJ7e3uMjIxcXFwaGhplZWUkJCS/v79vb2+6urooKCj09PQtLS1xcXH/Ypr0AAAE4UlEQVR4nO2da3uiMBBGQYWKtlbFS6u1XlrX//8Pt+i2u0yAGJnJxX3PR5+BmWMgQKIkitrwmE0283GPkfF8M8keWxXVgsUkFmOycCA03MgJFWysSwm20DcTq0KLpbxRHO+m9oxebAgVvNgy2tsyiuO9HSNrbVRgpZ0WNo3i2Mb59G5XaSlvZKH3LiPelw9tG8Wx9DV3ZF9pI2vkoJGkm8n6mVQgezap+V77CWeCpP+q5uBMQHmiyUasPheSZ5qlz5/khw41kklDnToyac6cSC6BNipISJqZTJozK3IeSeUh51MuleeLXjmV2BhBv5xnLJUnUjo8sTz0yBNLZE/JXiIohZAISiEkglIIiQJVekzXueURk9t5z9ep5hZm+ua6yFt4qx8Ym25dF3cr2xqpIFvom7eqJtq5rqodn0pDWR3oloEMn+9d18PB/u6MSu306LoWLoY/Sq4r4ePb6OC6ED5OF6OB6zo4eTorrfSB4ZDfXSNdmomOoAbOrLK7Y56MkKNmmkM57iQmI+RQpzkGUZcauS7SFHWaY0Y+CaqNCtRpjpycR64rNIecT88R+c2Wsx8s3g6Z5thZHF6SQpnmCF+JKPSg5CVQCgEohQCUQgBKIQClEIBSCGiUHjrBkVKlcXxnLO9r+LggV0aIgmcdZa5L4CaLjq5L4Obo5I8hkhR/Ounrw0LiPBB5Vx3E+nL1Dfx3Kf/y+eeG4o56iOP3TdLUdSVcHP/e+CW5Ptx/8vJEUqrfwncelFv0dO66pjbM08rnjuNL9kAi066H0D+GPWQvx0qhqscpT58IzYqEkhugBCUnQAlKToASlJwApf9SaZDRuYNsULs/kWBmJfpE9Qf1kZIrOJNWqn3R37ZiZ1LBrErrurw/g4I2gjmVGv8VRH9DKhfMqdTwVapfplwwp9JnU+JfbYIbB7FpMKdSU153wRxKZMwsbQwmPXaHL5hTibzqqDkxCe7yBUMJSlCCEpSgBCUoQQlKUIISlKAEJShBCUpQghKUoAQlKEEJSlCCEpSgBCUoQQlKUIISlKAEJShBCUpQghKUoAQlKEEJSlCCEpSgBCUoQQlKUIISlKAEJShBCUpQghKUoAQlKEEJSlCCEpRMlMj78ZqV5II5lQ5paRG7g0nwli+YU6kGV8GtlJ6b8o6sBXMqNS6WQ18DLBfMqdR4fOj2xRfMqtSwlltf2ZdR8FN9MH25Lq9SfZlqkXLBvEpfR33Fmfxc/Trt6uBR62BuJQ9opZRowp2QmCmR5WuHVmo0hLyoe6cJJ8vXflio0JiPco25JvxQDj9ZqdEQUuNBE/4aQP9ASnzVhO9JfEcT74AuKXGviVfWpvSuz6P9Xdy0gN4ZumJ31foNTqGLRyy1W0zol9C1UKYB9LCL37SbDOgmfnXk6urbT/qNlspGHrWT0kbx7oqtKh7Gtp70EclWra3uHriEupknfbnaRPGVF0660OiF08fQYVslw49TZVnVa7oqqGeTt+yu/ErUTs9brujuLijXJl/RX5N+WOn35gOr643U+ygv6Rn1V0GsrD41MYqihet69SzMjPxvp55hGxUkXvcRq9uu+x735Qa9d5mBp/cRu6uvsBVU3+855sr7ulpSz1pqedXThIbBhI5HOON9Ur/mqCHTfXc2mo97rlR64/lo1t1rx4LO/AarnnU+AAzLUQAAAABJRU5ErkJggg==" /></td><tr>`);
+            $(".location").removeClass("hide");
+
+            $('#maptable').find("td").each(function () {
+                this.style.border = "1px solid #ddd";
+                this.style.padding = "5px";
+            });
+        }
+
+        function zoomLocation(location) {
+            map.setZoom(18);
+            map.panTo(new google.maps.LatLng(parseFloat(location.split(",")[0].trim()), parseFloat(location.split(",")[1].trim())));
+        }
+
+        function DeleteLocation(obj, char) {
+
+            //Remove charactor from charactor array
+            existingLetters = existingLetters.filter(m => m != char);
+
+            //Remove Table row
+            $(obj).closest("tr").remove();
+
+            //Remove Direction
+            var directionRenderObj = directionsRendererCollection.filter(m => m.char === char);
+            directionRenderObj[0].render.setMap(null);
+            directionsRendererCollection = directionsRendererCollection.filter(m => m !== char);
+
+            //Remove existing address
+            exitingAddresses = exitingAddresses.filter(m => m.char !== char);
+
+            //Remove PolyLine
+            var polylineObj = polyLines.filter(m => m.char === char);
+            polylineObj[0].polyline.setMap(null);
+            polyLines = polyLines.filter(m => m.char !== char);
+        }
+    </script>
+</body>
+
+</html>
